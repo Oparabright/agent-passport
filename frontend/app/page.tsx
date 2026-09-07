@@ -7,6 +7,7 @@ import {
   useTransaction,
   useDispute,
   useRecordSuccessfulTransaction,
+  useRecordFailedTransaction,
 } from "@/lib/hooks/useAgentPassport";
 
 const AGENTS = {
@@ -155,6 +156,7 @@ export default function HomePage() {
   const currentAgent = AGENTS[selectedAgent];
 
   const recordSuccess = useRecordSuccessfulTransaction();
+  const recordFailure = useRecordFailedTransaction();
 
   const {
     data: agent,
@@ -606,6 +608,47 @@ export default function HomePage() {
                         tx3 || "Loading transaction from GenLayer..."
                       }
                     />
+
+                    <div className="mt-6 border-t border-white/10 pt-5">
+                      <button
+                        onClick={() =>
+                          recordFailure.mutate({
+                            agentAddress: AGENTS.scambot.address,
+                            counterpartyAddress: AGENTS.verifierbot.address,
+                          })
+                        }
+                        disabled={recordFailure.isPending}
+                        className="w-full rounded-xl bg-red-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {recordFailure.isPending
+                          ? "Recording on GenLayer..."
+                          : "Record Failed Interaction"}
+                      </button>
+
+                      {recordFailure.isSuccess && (
+                        <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                          <p className="text-sm font-medium text-emerald-400">
+                            Transaction accepted
+                          </p>
+                          <p className="mt-2 break-all font-mono text-xs text-white/40">
+                            {recordFailure.data}
+                          </p>
+                        </div>
+                      )}
+
+                      {recordFailure.isError && (
+                        <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                          <p className="text-sm font-medium text-red-400">
+                            Transaction failed
+                          </p>
+                          <p className="mt-2 break-words text-xs text-white/45">
+                            {recordFailure.error instanceof Error
+                              ? recordFailure.error.message
+                              : "Unknown error"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="overflow-hidden rounded-2xl border border-red-500/20 bg-red-500/[0.04]">
