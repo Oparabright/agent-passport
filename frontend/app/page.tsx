@@ -9,6 +9,7 @@ import {
   useRecordSuccessfulTransaction,
   useRecordFailedTransaction,
   useCreateDispute,
+  useAdjudicateDispute,
 } from "@/lib/hooks/useAgentPassport";
 
 const AGENTS = {
@@ -159,6 +160,7 @@ export default function HomePage() {
   const recordSuccess = useRecordSuccessfulTransaction();
   const recordFailure = useRecordFailedTransaction();
   const createDispute = useCreateDispute();
+  const adjudicateDispute = useAdjudicateDispute();
 
   const {
     data: agent,
@@ -183,6 +185,11 @@ export default function HomePage() {
 
   const { data: dispute1 } = useDispute(
     1,
+    selectedAgent === "scambot"
+  );
+
+  const { data: dispute2 } = useDispute(
+    2,
     selectedAgent === "scambot"
   );
 
@@ -702,62 +709,143 @@ export default function HomePage() {
                           INTERACTIVE DEMO
                         </p>
 
-                        <p className="mt-2 text-sm leading-6 text-white/45">
-                          Submit a new challenge against ScamBot using VerifierBot
-                          as the challenger.
-                        </p>
+                        <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold">
+                                Dispute #2
+                              </p>
+                              <p className="mt-1 text-xs text-white/35">
+                                ScamBot challenged by VerifierBot
+                              </p>
+                            </div>
+
+                            <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+                              {dispute2?.includes("Status: INVALID")
+                                ? "INVALID"
+                                : dispute2?.includes("Status: VALID")
+                                ? "VALID"
+                                : "PENDING"}
+                            </span>
+                          </div>
+
+                          <p className="mt-4 break-words text-xs leading-6 text-white/40">
+                            {dispute2 || "Loading dispute #2 from GenLayer..."}
+                          </p>
+                        </div>
 
                         <button
                           onClick={() =>
-                            createDispute.mutate({
-                              accusedAddress: AGENTS.scambot.address,
-                              challengerAddress: AGENTS.verifierbot.address,
-                              claim: "This seller is legitimate.",
-                              evidence:
-                                "The seller has 2 failed transactions and 0 successful transactions.",
+                            adjudicateDispute.mutate({
+                              disputeId: 2,
                             })
                           }
                           disabled={
-                            createDispute.isPending || createDispute.isSuccess
+                            adjudicateDispute.isPending ||
+                            adjudicateDispute.isSuccess ||
+                            dispute2?.includes("Status: INVALID") ||
+                            dispute2?.includes("Status: VALID")
                           }
-                          className="mt-4 w-full rounded-xl border border-red-400/30 bg-red-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="mt-4 w-full rounded-xl bg-violet-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          {createDispute.isPending
-                            ? "Submitting dispute on GenLayer..."
-                            : createDispute.isSuccess
-                            ? "Dispute Submitted"
-                            : "Create New Dispute"}
+                          {adjudicateDispute.isPending
+                            ? "Running GenLayer Adjudication..."
+                            : adjudicateDispute.isSuccess
+                            ? "Adjudication Submitted"
+                            : dispute2?.includes("Status: INVALID") ||
+                              dispute2?.includes("Status: VALID")
+                            ? "Dispute Already Adjudicated"
+                            : "Adjudicate Dispute #2"}
                         </button>
 
-                        {createDispute.isSuccess && (
+                        {adjudicateDispute.isSuccess && (
                           <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                             <p className="text-sm font-medium text-emerald-400">
-                              Dispute transaction accepted
+                              Adjudication transaction accepted
                             </p>
 
-                            <p className="mt-2 text-xs text-white/45">
-                              Expected new dispute ID: #2
+                            <p className="mt-2 text-xs leading-5 text-white/45">
+                              GenLayer is evaluating the claim and evidence through
+                              intelligent consensus. The dispute record and ScamBot
+                              reputation will refresh after the transaction is accepted.
                             </p>
 
-                            <p className="mt-2 break-all font-mono text-xs text-white/40">
-                              {createDispute.data}
+                            <p className="mt-3 break-all font-mono text-xs text-white/40">
+                              {adjudicateDispute.data}
                             </p>
                           </div>
                         )}
 
-                        {createDispute.isError && (
+                        {adjudicateDispute.isError && (
                           <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
                             <p className="text-sm font-medium text-red-400">
-                              Dispute submission failed
+                              Adjudication failed
                             </p>
 
                             <p className="mt-2 break-words text-xs text-white/45">
-                              {createDispute.error instanceof Error
-                                ? createDispute.error.message
+                              {adjudicateDispute.error instanceof Error
+                                ? adjudicateDispute.error.message
                                 : "Unknown error"}
                             </p>
                           </div>
                         )}
+
+                        <details className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4">
+                          <summary className="cursor-pointer text-sm font-medium text-white/60">
+                            Create another dispute
+                          </summary>
+
+                          <p className="mt-4 text-sm leading-6 text-white/45">
+                            Dispute #2 already exists. Use this only if you deliberately
+                            want to create an additional demo dispute.
+                          </p>
+
+                          <button
+                            onClick={() =>
+                              createDispute.mutate({
+                                accusedAddress: AGENTS.scambot.address,
+                                challengerAddress: AGENTS.verifierbot.address,
+                                claim: "This seller is legitimate.",
+                                evidence:
+                                  "The seller has 2 failed transactions and 0 successful transactions.",
+                              })
+                            }
+                            disabled={
+                              createDispute.isPending || createDispute.isSuccess
+                            }
+                            className="mt-4 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/70 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {createDispute.isPending
+                              ? "Submitting dispute on GenLayer..."
+                              : createDispute.isSuccess
+                              ? "Additional Dispute Submitted"
+                              : "Create Additional Dispute"}
+                          </button>
+
+                          {createDispute.isSuccess && (
+                            <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                              <p className="text-sm font-medium text-emerald-400">
+                                Dispute transaction accepted
+                              </p>
+                              <p className="mt-2 break-all font-mono text-xs text-white/40">
+                                {createDispute.data}
+                              </p>
+                            </div>
+                          )}
+
+                          {createDispute.isError && (
+                            <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                              <p className="text-sm font-medium text-red-400">
+                                Dispute submission failed
+                              </p>
+                              <p className="mt-2 break-words text-xs text-white/45">
+                                {createDispute.error instanceof Error
+                                  ? createDispute.error.message
+                                  : "Unknown error"}
+                              </p>
+                            </div>
+                          )}
+                        </details>
                       </div>
                     </div>
                   </div>
