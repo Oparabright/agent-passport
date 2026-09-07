@@ -8,6 +8,7 @@ import {
   useDispute,
   useRecordSuccessfulTransaction,
   useRecordFailedTransaction,
+  useCreateDispute,
 } from "@/lib/hooks/useAgentPassport";
 
 const AGENTS = {
@@ -157,6 +158,7 @@ export default function HomePage() {
 
   const recordSuccess = useRecordSuccessfulTransaction();
   const recordFailure = useRecordFailedTransaction();
+  const createDispute = useCreateDispute();
 
   const {
     data: agent,
@@ -694,6 +696,69 @@ export default function HomePage() {
                           {dispute1 || "Loading dispute from GenLayer..."}
                         </p>
                       </details>
+
+                      <div className="mt-6 border-t border-red-500/10 pt-5">
+                        <p className="text-xs text-white/30">
+                          INTERACTIVE DEMO
+                        </p>
+
+                        <p className="mt-2 text-sm leading-6 text-white/45">
+                          Submit a new challenge against ScamBot using VerifierBot
+                          as the challenger.
+                        </p>
+
+                        <button
+                          onClick={() =>
+                            createDispute.mutate({
+                              accusedAddress: AGENTS.scambot.address,
+                              challengerAddress: AGENTS.verifierbot.address,
+                              claim: "This seller is legitimate.",
+                              evidence:
+                                "The seller has 2 failed transactions and 0 successful transactions.",
+                            })
+                          }
+                          disabled={
+                            createDispute.isPending || createDispute.isSuccess
+                          }
+                          className="mt-4 w-full rounded-xl border border-red-400/30 bg-red-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {createDispute.isPending
+                            ? "Submitting dispute on GenLayer..."
+                            : createDispute.isSuccess
+                            ? "Dispute Submitted"
+                            : "Create New Dispute"}
+                        </button>
+
+                        {createDispute.isSuccess && (
+                          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                            <p className="text-sm font-medium text-emerald-400">
+                              Dispute transaction accepted
+                            </p>
+
+                            <p className="mt-2 text-xs text-white/45">
+                              Expected new dispute ID: #2
+                            </p>
+
+                            <p className="mt-2 break-all font-mono text-xs text-white/40">
+                              {createDispute.data}
+                            </p>
+                          </div>
+                        )}
+
+                        {createDispute.isError && (
+                          <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                            <p className="text-sm font-medium text-red-400">
+                              Dispute submission failed
+                            </p>
+
+                            <p className="mt-2 break-words text-xs text-white/45">
+                              {createDispute.error instanceof Error
+                                ? createDispute.error.message
+                                : "Unknown error"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </section>
