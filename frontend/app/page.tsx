@@ -6,6 +6,7 @@ import {
   useAgentPassport,
   useTransaction,
   useDispute,
+  useRecordSuccessfulTransaction,
 } from "@/lib/hooks/useAgentPassport";
 
 const AGENTS = {
@@ -152,6 +153,8 @@ export default function HomePage() {
     useState<AgentKey>("researchbot");
 
   const currentAgent = AGENTS[selectedAgent];
+
+  const recordSuccess = useRecordSuccessfulTransaction();
 
   const {
     data: agent,
@@ -485,6 +488,49 @@ export default function HomePage() {
                       <p className={`mt-2 font-semibold ${trust.text}`}>
                         {trust.label}
                       </p>
+                    </div>
+
+                    <div className="mt-8 border-t border-white/10 pt-5">
+                      <button
+                        onClick={() =>
+                          recordSuccess.mutate({
+                            agentAddress: AGENTS.researchbot.address,
+                            counterpartyAddress: AGENTS.verifierbot.address,
+                          })
+                        }
+                        disabled={recordSuccess.isPending}
+                        className="w-full rounded-xl bg-violet-400 px-4 py-3 text-sm font-semibold text-black transition hover:bg-violet-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {recordSuccess.isPending
+                          ? "Recording on GenLayer..."
+                          : "Record Successful Interaction"}
+                      </button>
+
+                      {recordSuccess.isSuccess && (
+                        <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                          <p className="text-sm font-medium text-emerald-400">
+                            Transaction accepted
+                          </p>
+
+                          <p className="mt-2 break-all font-mono text-xs text-white/40">
+                            {recordSuccess.data}
+                          </p>
+                        </div>
+                      )}
+
+                      {recordSuccess.isError && (
+                        <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4">
+                          <p className="text-sm font-medium text-red-400">
+                            Transaction failed
+                          </p>
+
+                          <p className="mt-2 break-words text-xs text-white/45">
+                            {recordSuccess.error instanceof Error
+                              ? recordSuccess.error.message
+                              : "Unknown error"}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </section>
