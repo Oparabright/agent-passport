@@ -1,143 +1,287 @@
-# Sample GenLayer project
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/)
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/8Jm4v89VAu)
-[![Telegram](https://img.shields.io/badge/Telegram--T.svg?style=social&logo=telegram)](https://t.me/genlayer)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40GenLayer)](https://x.com/GenLayer)
-[![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genlayer-project-boilerplate?style=social)](https://star-history.com/#yeagerai/genlayer-js)
+# Agent Passport
 
-## About
-This project includes the boilerplate code for a GenLayer use case implementation, specifically a football bets game.
+**A verifiable reputation and trust layer for autonomous AI agents,
+powered by GenLayer Intelligent Contracts.**
 
-## What's included
-- An example intelligent contract (Football Bets) with web access and LLM integration
-- **Direct mode tests** — fast, in-memory unit tests with web/LLM mocking (~ms per test)
-- **Integration tests** — full end-to-end tests against GenLayer Studio
-- **Contract linting** — static analysis to catch common contract issues before deployment
-- **CI pipeline** — GitHub Actions workflow for linting and direct tests
-- A production-ready Next.js 15 frontend with TypeScript, TanStack Query, and Radix UI
-- Configuration file template and deployment scripts
+Agent Passport gives AI agents an on-chain identity, records successful
+and failed interactions, allows counterparties to challenge questionable
+behavior, and uses GenLayer intelligent consensus to adjudicate disputes
+and update reputation.
 
-## Requirements
-- Python >= 3.12
-- [GenLayer CLI](https://github.com/genlayerlabs/genlayer-cli) globally installed: `npm install -g genlayer`
-- GenLayer Studio (for integration tests and deployment): Install from [Docs](https://docs.genlayer.com/developers/intelligent-contracts/tooling-setup#using-the-genlayer-studio) or use the hosted [GenLayer Studio](https://studio.genlayer.com/)
+> **MVP status:** Working end-to-end on GenLayer Studio Next, including
+> wallet-triggered writes, reputation updates, dispute creation, and
+> AI-assisted dispute adjudication.
+
+## Why Agent Passport?
+
+Autonomous agents increasingly transact, collaborate, and make decisions
+for users. But an agent address alone does not tell another agent
+whether it has behaved reliably in the past.
+
+Agent Passport provides a reusable trust primitive:
+
+-   **Agent Passport** --- register an agent address with an on-chain
+    identity.
+-   **Reputation Score** --- each registered agent starts at 50/100.
+-   **Behavior History** --- successful and failed interactions affect
+    reputation.
+-   **Disputes** --- registered agents can challenge another registered
+    agent with a claim and evidence.
+-   **Intelligent Adjudication** --- GenLayer evaluates the claim and
+    evidence through an LLM-backed nondeterministic operation and
+    consensus.
+-   **Automatic Consequences** --- the agreed dispute result updates the
+    accused agent's reputation and dispute record.
+
+## Demo
+
+The current demo uses three agents:
+
+  -----------------------------------------------------------------------
+  Agent                   Role                    Demo behavior
+  ----------------------- ----------------------- -----------------------
+  **ResearchBot**         Research Agent          Builds reputation
+                                                  through successful
+                                                  interactions
+
+  **VerifierBot**         Verification Agent      Acts as counterparty
+                                                  and dispute challenger
+
+  **ScamBot**             Flagged Agent           Demonstrates failed
+                                                  interactions and
+                                                  disputed claims
+  -----------------------------------------------------------------------
+
+### End-to-end flow
+
+1.  Connect a wallet to the frontend.
+2.  Record a successful `ResearchBot -> VerifierBot` interaction.
+3.  ResearchBot's successful transaction count increases and reputation
+    gains **+2**.
+4.  Record a failed `ScamBot -> VerifierBot` interaction.
+5.  ScamBot's failed transaction count increases and reputation loses
+    **-5**.
+6.  Create a dispute against ScamBot using VerifierBot as challenger.
+7.  Submit the dispute for GenLayer intelligent adjudication.
+8.  GenLayer evaluates the natural-language claim and evidence.
+9.  The agreed `VALID` or `INVALID` result is stored on-chain.
+10. Reputation and dispute statistics update automatically.
+
+In the tested demo, the claim `This seller is legitimate.` was
+challenged with evidence describing failed transactions and no
+successful transactions. GenLayer adjudication returned **INVALID**, and
+the accused agent's reputation was automatically reduced.
+
+## How GenLayer Is Used
+
+Agent Passport is not using GenLayer only as a database.
+
+The core adjudication function performs an LLM call through
+`gl.nondet.exec_prompt()` and passes the nondeterministic operation
+through `gl.eq_principle.strict_eq()`. After an agreed `VALID` or
+`INVALID` result is returned, deterministic contract code stores the
+outcome and applies the reputation change.
+
+This separation is important: the AI judgment occurs inside GenLayer's
+nondeterministic execution model, while the reputation update occurs
+deterministically after consensus.
+
+## Reputation Rules
+
+  Event                                 Reputation effect
+  ----------------------------------- -------------------
+  Agent registration                     Starts at **50**
+  Successful interaction                           **+2**
+  Failed interaction                               **-5**
+  Valid dispute for accused agent                  **+5**
+  Invalid dispute for accused agent               **-10**
+
+Reputation is bounded between **0 and 100**.
+
+## Architecture
+
+``` text
+Next.js Agent Passport Dashboard
+              |
+              | genlayer-js
+              v
+AgentPassport Intelligent Contract
+  - Agent identities
+  - Reputation
+  - Transaction history
+  - Dispute records
+              |
+              | claim + evidence
+              v
+GenLayer / GenVM
+  gl.nondet.exec_prompt()
+              +
+  gl.eq_principle.strict_eq()
+              |
+              | VALID / INVALID
+              v
+Deterministic State Update
+  - Store dispute result
+  - Update reputation
+  - Update dispute counters
+```
+
+## Deployed Demo
+
+The current MVP was deployed and tested on **GenLayer Studio Next**.
+
+  Item              Value
+  ----------------- ----------------------------------------------
+  Network           GenLayer Studio Next
+  Chain ID          `61997`
+  Contract          `0xcD853F7772B7E58342cC52ce96EAa75355f4D841`
+  Contract source   `contracts/agent_passport.py`
+
+### Demo agent addresses
+
+``` text
+ResearchBot
+0x6909892961bF4A4E3f69E750b9a18196DaAe489d
+
+VerifierBot
+0x1f400f22878fBBcc8090BB60d906b9Df779edB84
+
+ScamBot
+0x437e1D8dB8E448BbF00cbBE0795d13F70DF73Ac8
+```
+
+## Tech Stack
+
+-   **GenLayer Intelligent Contracts**
+-   **Python / GenVM**
+-   **GenLayerJS**
+-   **Next.js**
+-   **React**
+-   **TypeScript**
+-   **TanStack Query**
+-   **Tailwind CSS**
+-   **MetaMask**
+
+The frontend was built from the official GenLayer project boilerplate
+and adapted into the Agent Passport application.
 
 ## Project Structure
 
-```
-contracts/              # Python intelligent contracts
-tests/
-  direct/               # Fast in-memory tests (no Studio required)
-    test_create_bet.py   # Bet creation logic
-    test_resolve_bet.py  # Bet resolution with web/LLM mocks
-    test_views.py        # Read-only view methods
-  integration/           # Full tests against GenLayer Studio
-    test_football_bets.py
-    fixtures.py          # Expected state fixtures
-frontend/               # Next.js 15 app (TypeScript, TanStack Query, Radix UI)
-deploy/                 # TypeScript deployment scripts
-gltest.config.yaml      # Test runner network configuration
-pyproject.toml          # Python/pytest configuration
-.github/workflows/      # CI pipeline
-```
+``` text
+contracts/
+  agent_passport.py          # Agent Passport Intelligent Contract
 
-## Quick Start
+frontend/
+  app/
+    page.tsx                 # Main Agent Passport dashboard
+  lib/
+    contracts/
+      AgentPassport.ts       # Contract read/write wrapper
+    hooks/
+      useAgentPassport.ts    # React Query read/write hooks
+    genlayer/
+      client.ts              # Studio Next client/network configuration
+      wallet.ts              # Wallet integration
 
-### 1. Set up Python environment
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+README.md
 ```
 
-### 2. Lint your contracts
+Some original boilerplate files may remain in the repository during MVP
+cleanup; the Agent Passport application uses the files identified above.
 
-Run the GenVM linter to catch issues before deployment:
+## Run the Frontend Locally
 
-```shell
-genvm-lint check contracts/football_bets.py
-```
+### 1. Install dependencies
 
-The linter catches:
-- Forbidden imports and non-deterministic calls
-- Invalid storage types (must use `TreeMap`, `DynArray`, `u256`, etc.)
-- Missing decorators and return type annotations
-- Non-deterministic operations outside equivalence principle blocks
-- And [20+ other rules](https://github.com/genlayerlabs/genvm-linter)
+From the repository root:
 
-### 3. Run direct mode tests
-
-Direct mode tests run contracts in-memory without needing GenLayer Studio. They use mocks for web requests and LLM calls, giving you fast feedback (~milliseconds per test):
-
-```shell
-pytest tests/direct/ -v
-```
-
-Direct mode features used in these tests:
-- `direct_deploy("contracts/file.py")` — deploy contract in memory
-- `direct_vm.sender = address` — set transaction sender
-- `direct_vm.mock_web(pattern, response)` — mock HTTP/render calls
-- `direct_vm.mock_llm(pattern, response)` — mock LLM responses
-- `direct_vm.expect_revert("message")` — assert expected failures
-- `direct_vm.clear_mocks()` — reset mocks between calls
-
-### 4. Deploy the contract
-
-1. Choose your network: `genlayer network`
-2. Deploy: `genlayer deploy` (runs the script in `/deploy/deployScript.ts`)
-
-### 5. Run integration tests
-
-Integration tests deploy the contract to GenLayer Studio and test with real consensus:
-
-```shell
-gltest tests/integration/ -v -s
-```
-
-These require GenLayer Studio running (local or hosted).
-
-### 6. Set up the frontend
-
-1. Copy `frontend/.env.example` to `frontend/.env`
-2. Add your deployed contract address as `NEXT_PUBLIC_CONTRACT_ADDRESS`
-3. Run:
-
-```shell
+``` bash
 cd frontend
 npm install
+```
+
+### 2. Configure environment variables
+
+Create `frontend/.env`:
+
+``` env
+NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio-next.genlayer.com/api
+NEXT_PUBLIC_GENLAYER_CHAIN_ID=61997
+NEXT_PUBLIC_GENLAYER_CHAIN_NAME=GenLayer Studio Next
+NEXT_PUBLIC_GENLAYER_SYMBOL=GEN
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xcD853F7772B7E58342cC52ce96EAa75355f4D841
+```
+
+Do not commit private environment files or wallet secrets.
+
+### 3. Start the frontend
+
+``` bash
 npm run dev
 ```
 
-The app will be available at http://localhost:3000/.
+Then open `http://localhost:3000` and connect MetaMask when you want to
+perform write actions.
 
-## How the Football Bets Contract Works
+## Intelligent Contract
 
-1. **Creating Bets**: Users bet on a football match by providing the game date, teams, and predicted winner.
-2. **Resolving Bets**: After the match, the contract fetches results from BBC Sport, uses an LLM to extract the score, and validates via the equivalence principle.
-3. **Points**: Correct predictions earn points. Users can query their points or the leaderboard.
+The deployed contract source is:
 
-## Testing Strategy
+``` text
+contracts/agent_passport.py
+```
 
-| Test Type | Command | Speed | Requires Studio |
-|-----------|---------|-------|-----------------|
-| **Lint** | `genvm-lint check contracts/*.py` | ~250ms | No |
-| **Direct** | `pytest tests/direct/ -v` | ~ms/test | No |
-| **Integration** | `gltest tests/integration/ -v -s` | ~min/test | Yes |
+The contract supports registration, successful/failed interaction
+recording, dispute creation, intelligent adjudication, and read-only
+passport/history queries.
 
-**Recommended workflow:**
-1. Lint after every contract change
-2. Run direct tests frequently during development
-3. Run integration tests before deployment to verify consensus behavior
+## MVP Security Scope
 
-For AI coding agents (Claude Code, Cursor, etc.), the linter and direct tests provide the fast feedback loop needed for iterative development without requiring a running Studio instance.
+Agent Passport is currently a hackathon MVP and should not be
+interpreted as a production-ready identity/authentication protocol.
 
-## Community
-- **[Discord](https://discord.gg/8Jm4v89VAu)**: Discussions, support, and announcements
-- **[Telegram](https://t.me/genlayer)**: Informal chats and quick updates
+The current contract validates that participating addresses are
+registered and prevents an agent from interacting with or disputing
+itself. However, it does **not yet authenticate ownership of an agent
+address for every reputation-changing action**.
 
-## Documentation
-For detailed information, see our [documentation](https://docs.genlayer.com/).
+A production version should add:
+
+-   authenticated agent ownership;
+-   signed interaction receipts;
+-   counterparty confirmation;
+-   replay/spam protections;
+-   stronger Sybil and reputation-farming resistance;
+-   configurable dispute policies and richer evidence validation.
+
+This limitation is intentionally documented rather than presenting the
+MVP as a complete anti-fraud system.
+
+## Roadmap
+
+-   Cryptographically authenticated agent ownership
+-   Signed bilateral interaction receipts
+-   Portable reputation across agent marketplaces
+-   Category-specific reputation scores
+-   Richer dispute evidence
+-   Agent-to-agent trust queries
+-   Reputation decay and confidence weighting
+-   Production/testnet deployment beyond the Studio development
+    environment
+
+## Built With GenLayer
+
+GenLayer enables contracts to reach consensus over nondeterministic
+inputs such as LLM outputs and live web data. Agent Passport applies
+that capability to a fundamental problem in the agentic economy:
+
+**Can one autonomous agent trust another?**
+
+Instead of relying entirely on a centralized reputation administrator,
+Agent Passport turns behavioral history and contested claims into
+verifiable on-chain reputation signals.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+This repository retains the license included with the GenLayer project
+boilerplate.
