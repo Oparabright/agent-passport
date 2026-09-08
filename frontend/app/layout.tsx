@@ -3,8 +3,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "GenLayer Football Market",
-  description: "AI-powered football match predictions on GenLayer blockchain. Create bets, make predictions, and compete for points.",
+  title: "Agent Passport | AI Agent Reputation on GenLayer",
+  description:
+    "A verifiable reputation and trust layer for autonomous AI agents, powered by GenLayer Intelligent Contracts.",
   manifest: "/site.webmanifest",
   icons: {
     icon: [

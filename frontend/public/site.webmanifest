@@ -1,7 +1,7 @@
 {
-  "name": "GenLayer Football Market",
-  "short_name": "GenLayer Market",
-  "description": "AI-powered football match predictions on GenLayer blockchain",
+  "name": "Agent Passport",
+  "short_name": "Agent Passport",
+  "description": "Verifiable reputation and trust for autonomous AI agents on GenLayer.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

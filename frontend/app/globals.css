@@ -312,7 +312,7 @@
     filter: brightness(1.1);
   }
 
-  /* Betting Panel Button States (Simplified) */
+  /* Action Button States (Simplified) */
   .bet-button-unselected {
     background: oklch(0.25 0.08 265 / 0.5);
     border: 1px solid oklch(0.30 0.10 265 / 0.4);

@@ -1,7 +1,7 @@
 {
-  "name": "genlayer-football-betting",
+  "name": "agent-passport",
   "version": "1.0.0",
-  "description": "GenLayer Football Betting - AI-powered prediction betting on GenLayer blockchain.",
+  "description": "Agent Passport - verifiable reputation and trust for autonomous AI agents on GenLayer.",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",

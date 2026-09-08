@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { User, LogOut, AlertCircle, ExternalLink } from "lucide-react";
 import { useWallet } from "@/lib/genlayer/wallet";
-import { usePlayerPoints } from "@/lib/hooks/useFootballBets";
-import { success, error, userRejected } from "@/lib/utils/toast";
+import { error, userRejected } from "@/lib/utils/toast";
 import { AddressDisplay } from "./AddressDisplay";
 import { Button } from "./ui/button";
 import {
@@ -31,8 +30,6 @@ export function AccountPanel() {
     switchWalletAccount,
   } = useWallet();
 
-  const { data: points = 0 } = usePlayerPoints(address);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionError, setConnectionError] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -56,7 +53,7 @@ export function AccountPanel() {
         userRejected("Connection cancelled");
       } else {
         error("Failed to connect wallet", {
-          description: err.message || "Check your MetaMask and try again."
+          description: err.message || "Check your MetaMask and try again.",
         });
       }
     } finally {
@@ -74,15 +71,13 @@ export function AccountPanel() {
       setIsSwitching(true);
       setConnectionError("");
       await switchWalletAccount();
-      // Keep modal open to show new account info
     } catch (err: any) {
       console.error("Failed to switch account:", err);
 
-      // Don't show error if user cancelled
       if (!err.message?.includes("rejected")) {
         setConnectionError(err.message || "Failed to switch account");
         error("Failed to switch account", {
-          description: err.message || "Please try again."
+          description: err.message || "Please try again.",
         });
       } else {
         userRejected("Account switch cancelled");
@@ -92,7 +87,6 @@ export function AccountPanel() {
     }
   };
 
-  // Not connected state
   if (!isConnected) {
     return (
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -102,30 +96,36 @@ export function AccountPanel() {
             Connect Wallet
           </Button>
         </DialogTrigger>
+
         <DialogContent className="brand-card border-2">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Connect to GenLayer
             </DialogTitle>
             <DialogDescription>
-              Connect your MetaMask wallet to start betting
+              Connect your MetaMask wallet to interact with Agent Passport
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             {!isMetaMaskInstalled ? (
               <>
-                <Alert variant="default" className="bg-accent/10 border-accent/20">
+                <Alert
+                  variant="default"
+                  className="bg-accent/10 border-accent/20"
+                >
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>MetaMask Not Detected</AlertTitle>
                   <AlertDescription>
-                    Please install MetaMask to continue. MetaMask is a crypto
-                    wallet that allows you to interact with blockchain applications.
+                    Please install MetaMask to continue. MetaMask allows you to
+                    interact with Agent Passport on GenLayer.
                   </AlertDescription>
                 </Alert>
 
                 <Button
-                  onClick={() => window.open(METAMASK_INSTALL_URL, "_blank")}
+                  onClick={() =>
+                    window.open(METAMASK_INSTALL_URL, "_blank")
+                  }
                   variant="gradient"
                   className="w-full h-14 text-lg"
                 >
@@ -164,8 +164,9 @@ export function AccountPanel() {
                   <p className="text-xs text-muted-foreground">
                     This will open MetaMask and prompt you to:
                   </p>
+
                   <ol className="text-xs text-muted-foreground list-decimal list-inside mt-2 space-y-1">
-                    <li>Connect your wallet to this application</li>
+                    <li>Connect your wallet to Agent Passport</li>
                     <li>Add the GenLayer network to MetaMask</li>
                     <li>Switch to the GenLayer network</li>
                   </ol>
@@ -178,7 +179,6 @@ export function AccountPanel() {
     );
   }
 
-  // Connected state
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <div className="flex items-center gap-4">
@@ -186,11 +186,6 @@ export function AccountPanel() {
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-accent" />
             <AddressDisplay address={address} maxLength={12} />
-          </div>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-semibold text-accent">{points}</span>
-            <span className="text-xs text-muted-foreground">pts</span>
           </div>
         </div>
 
@@ -218,12 +213,8 @@ export function AccountPanel() {
           </div>
 
           <div className="brand-card p-4 space-y-2">
-            <p className="text-sm text-muted-foreground">Your Points</p>
-            <p className="text-2xl font-bold text-accent">{points}</p>
-          </div>
-
-          <div className="brand-card p-4 space-y-2">
             <p className="text-sm text-muted-foreground">Network Status</p>
+
             <div className="flex items-center gap-2">
               <div
                 className={`w-2 h-2 rounded-full ${
@@ -232,6 +223,7 @@ export function AccountPanel() {
                     : "bg-yellow-500 animate-pulse"
                 }`}
               />
+
               <span className="text-sm">
                 {isOnCorrectNetwork
                   ? "Connected to GenLayer"
@@ -241,12 +233,15 @@ export function AccountPanel() {
           </div>
 
           {!isOnCorrectNetwork && (
-            <Alert variant="default" className="bg-yellow-500/10 border-yellow-500/20">
+            <Alert
+              variant="default"
+              className="bg-yellow-500/10 border-yellow-500/20"
+            >
               <AlertCircle className="h-4 w-4 text-yellow-500" />
               <AlertTitle>Network Warning</AlertTitle>
               <AlertDescription>
-                You&apos;re not on the GenLayer network. Please switch networks in
-                MetaMask or try reconnecting.
+                You&apos;re not on the GenLayer network. Please switch networks
+                in MetaMask or try reconnecting.
               </AlertDescription>
             </Alert>
           )}

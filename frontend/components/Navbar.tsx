@@ -108,7 +108,7 @@ export function Navbar() {
                 </span>
 
                 <span className="font-bold">
-                  Studionet
+                  Studio-Next
                 </span>
               </div>
 
