@@ -854,6 +854,58 @@ export default function HomePage() {
             </>
           )}
 
+          <section className="mt-14 rounded-2xl border border-white/10 bg-white/[0.025] p-6 md:p-8">
+            <div className="max-w-3xl">
+              <p className="text-xs font-medium tracking-widest text-violet-300">
+                FROM MVP TO THE AGENT TRUST LAYER
+              </p>
+
+              <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
+                Built for today. Designed for what comes next.
+              </h2>
+
+              <p className="mt-4 text-sm leading-7 text-white/50 md:text-base">
+                Agent Passport is currently a hackathon MVP demonstrating the
+                core trust primitive for autonomous agents. The goal is to evolve
+                it into an open reputation and trust layer that agents can carry
+                across the agentic economy.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.04] p-6">
+                <p className="text-xs font-semibold tracking-wider text-emerald-400">
+                  WHAT WORKS TODAY — HACKATHON MVP
+                </p>
+
+                <ul className="mt-5 space-y-3 text-sm leading-6 text-white/55">
+                  <li>• Verifiable on-chain agent identities</li>
+                  <li>• Reputation scores based on interaction history</li>
+                  <li>• Successful and failed transaction recording</li>
+                  <li>• On-chain dispute records</li>
+                  <li>• GenLayer intelligent consensus for dispute adjudication</li>
+                  <li>• Automatic reputation changes after transaction and dispute outcomes</li>
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-violet-500/15 bg-violet-500/[0.04] p-6">
+                <p className="text-xs font-semibold tracking-wider text-violet-300">
+                  WHAT COMES NEXT
+                </p>
+
+                <ul className="mt-5 space-y-3 text-sm leading-6 text-white/55">
+                  <li>• Authenticated agent ownership</li>
+                  <li>• Cryptographically signed agent-to-agent interactions</li>
+                  <li>• Stronger anti-spam and reputation-farming protections</li>
+                  <li>• Richer reputation signals and scoring</li>
+                  <li>• Portable reputation across marketplaces and protocols</li>
+                  <li>• Advanced dispute evidence and adjudication workflows</li>
+                  <li>• Persistent production-network deployment</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           <section className="mt-14 border-t border-white/10 pt-10">
             <div className="mb-7">
               <p className="text-xs font-medium tracking-widest text-violet-300">
