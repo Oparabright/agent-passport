@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { AccountPanel } from "./AccountPanel";
-import { Logo, LogoMark } from "./Logo";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,10 +93,16 @@ export function Navbar() {
             >
               {/* Left: Brand */}
               <div className="flex items-center gap-3">
-                <LogoMark size="md" className="flex md:hidden" />
-                <Logo size="md" className="hidden md:flex" />
+                <Image
+                  src="/agent-passport-logo.png"
+                  alt="Agent Passport logo"
+                  width={75}
+                  height={75}
+                  className="rounded-lg object-contain"
+                  priority
+                />
 
-                <span className="text-lg md:text-xl font-bold ml-2">
+                <span className="text-lg md:text-xl font-bold">
                   Agent Passport
                 </span>
               </div>
